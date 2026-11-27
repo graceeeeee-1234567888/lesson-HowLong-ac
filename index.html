@@ -3,32 +3,33 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>网课时长 · 自动控制原理</title>
+  <title>网课时长 · 电力电子技术与自动控制原理</title>
   <style>
     * { box-sizing: border-box; }
     :root {
-      color: #172b47;
+      color: #172520;
       background: #fff;
       font-family: system-ui, "Microsoft YaHei", sans-serif;
-      accent-color: #225ab6;
+      accent-color: #21634f;
     }
     body { margin: 0; padding: 0 20px 36px; }
-    main { max-width: 640px; margin: 0 auto; }
+    main { max-width: 1120px; margin: 0 auto; }
     header {
       position: sticky;
       top: 0;
+      z-index: 1;
       background: #fff;
-      border-bottom: 1px solid #dce7f4;
+      border-bottom: 1px solid #dce5e0;
       padding: 24px 0 14px;
     }
     h1 { margin: 0 0 14px; font-size: clamp(1.4rem, 5vw, 2rem); }
     .summary { display: flex; gap: 12px 24px; flex-wrap: wrap; align-items: end; justify-content: space-between; }
     output { display: grid; gap: 4px; }
-    .caption, th, td:first-child { color: #475e79; font-size: .875rem; }
+    .caption, th, td:first-child { color: #4c6057; font-size: .875rem; }
     #duration { font-size: 1.45rem; font-weight: 700; font-variant-numeric: tabular-nums; }
     .actions { display: flex; gap: 8px; }
     button {
-      border: 1px solid #b8cbe3;
+      border: 1px solid #b9c9c1;
       border-radius: 6px;
       padding: 8px 12px;
       background: #fff;
@@ -37,31 +38,42 @@
       font-size: .875rem;
       cursor: pointer;
     }
-    button:hover, tr:hover td { background: #f1f6fe; }
-    button[aria-pressed="true"] { background: #e3edfb; border-color: #3e76c8; }
-    :focus-visible { outline: 2px solid #225ab6; outline-offset: 3px; }
+    button:hover, tr:hover td { background: #f1f6f3; }
+    button[aria-pressed="true"] { background: #e5ebe7; border-color: #43816d; }
+    :focus-visible { outline: 2px solid #21634f; outline-offset: 3px; }
     .range-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
-    tbody tr.range-start td { background: #e3edfb; }
+    tbody tr.range-start td { background: #e5ebe7; }
     .table-tools { display: flex; align-items: center; gap: 6px; margin-top: 12px; }
-    .gap-control { display: flex; align-items: center; gap: 6px; color: #4b607c; }
-    #column-gap { width: 3.25rem; padding: 4px; border: 1px solid #b8cbe3; border-radius: 4px; color: inherit; font: inherit; }
+    .gap-control { display: flex; align-items: center; gap: 6px; color: #595959; }
+    #column-gap { width: 3.25rem; padding: 4px; border: 1px solid #b9c9c1; border-radius: 4px; color: inherit; font: inherit; }
     .gap-buttons { display: flex; gap: 4px; }
-    .gap-buttons button { width: 1.75rem; height: 1.75rem; padding: 0; color: #4b607c; font-size: 1rem; line-height: 1; }
-    table { --column-gap: 50px; max-width: 100%; border-collapse: collapse; text-align: left; }
-    th, td { border-bottom: 1px solid #e3edfb; padding: 10px 0; }
+    .gap-buttons button { width: 1.75rem; height: 1.75rem; padding: 0; color: #595959; font-size: 1rem; line-height: 1; }
+    .course-grid { --column-gap: 50px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 28px; }
+    .course { min-width: 0; }
+    .course h2 { margin: 0; padding: 8px; background: #f1f6f3; color: #21634f; font-size: 1rem; }
+    .control-course h2 { background: #f1f6fe; color: #225ab6; }
+    .course-summary { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 8px 0; font-variant-numeric: tabular-nums; }
+    #toggle-bars { margin-inline-start: auto; }
+    table { max-width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { border-bottom: 1px solid #e5ebe7; padding: 10px 0; }
+    .power-course tbody tr:nth-child(9) td { border-bottom-color: #aebfb6; }
+    .control-course input[type="checkbox"] { accent-color: #225ab6; }
     thead th:first-child, tbody td:first-child { padding-right: 10px; white-space: nowrap; }
     thead th:nth-child(3), tbody td:nth-child(3), .total-duration { padding-left: var(--column-gap); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
     tbody td:nth-child(2) { padding: 0; }
     tbody label { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 0; cursor: pointer; user-select: none; }
     input[type="checkbox"] { flex: none; width: 1rem; height: 1rem; margin: 0; cursor: pointer; }
     .bar-column { padding-left: 8px; text-align: left; }
-    .bar-column button { padding: 4px 6px; white-space: nowrap; }
-    .duration-bar { display: block; height: 6px; border-radius: 4px; background: #e3edfb; }
-    table:not(.show-bars) .duration-bar { display: none; }
-    .duration-bar > span { display: block; height: 100%; border-radius: inherit; background: #3e76c8; }
+    .bar-column { width: 4.25rem; }
+    .duration-bar { display: block; height: 6px; border-radius: 4px; background: #e5ebe7; }
+    .course-grid:not(.show-bars) .duration-bar { display: none; }
+    .duration-bar > span { display: block; height: 100%; border-radius: inherit; background: #43816d; }
+    .control-course .duration-bar { background: #e3edfb; }
+    .control-course .duration-bar > span { background: #3e76c8; }
     tfoot { font-weight: 600; }
-    @media (max-width: 540px) {
-      thead th:nth-child(3), tbody td:nth-child(3), .total-duration { padding-left: min(var(--column-gap), 18vw); }
+    @media (max-width: 719px) { .course-grid { grid-template-columns: minmax(0, 1fr); } }
+    @media (max-width: 960px) {
+      thead th:nth-child(3), tbody td:nth-child(3), .total-duration { padding-left: min(var(--column-gap), 12vw); }
     }
     @media (max-width: 420px) { body { padding-inline: 12px; } header { padding-top: 14px; } }
   </style>
@@ -72,9 +84,9 @@
       <h1>网课时长</h1>
       <div class="summary">
         <output>
-          <span class="caption">已选 <span id="count">5 / 5</span> 项</span>
-          <span id="duration">5 小时 20min</span>
-          <span class="caption">未选 <span id="remaining">0 小时 00min</span></span>
+          <span class="caption">两门已选 <span id="count">24 / 24</span> 项</span>
+          <span id="duration">9 小时 29min</span>
+          <span class="caption">未选 <span id="remaining">0 小时 00min</span> · 两门合计 9:29:55</span>
         </output>
         <div class="actions">
           <button type="button" id="select-all">全选</button>
@@ -85,27 +97,68 @@
     <div class="range-controls">
       <button type="button" id="range-mode" aria-pressed="false">连选</button>
       <span class="caption" id="range-hint" aria-live="polite">按住 Shift 连选</span>
+      <button type="button" id="toggle-bars" aria-pressed="false">进度条</button>
     </div>
-    <table aria-label="视频时长表" id="video-table">
-      <thead>
-        <tr>
-          <th scope="col">序号</th>
-          <th scope="col">视频</th>
-          <th scope="col">时长</th>
-          <th scope="col" class="bar-column"><button type="button" id="toggle-bars" aria-pressed="false">进度条</button></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td><label><input type="checkbox" checked> <span>自动控制的一般概念</span></label></td><td>01:05:10</td></tr>
-        <tr><td>2</td><td><label><input type="checkbox" checked> <span>控制系统的数学模型</span></label></td><td>01:02:16</td></tr>
-        <tr><td>3</td><td><label><input type="checkbox" checked> <span>线性系统的时域分析法</span></label></td><td>01:03:25</td></tr>
-        <tr><td>4</td><td><label><input type="checkbox" checked> <span>线性系统的根轨迹分析法</span></label></td><td>01:02:03</td></tr>
-        <tr><td>5</td><td><label><input type="checkbox" checked> <span>线性系统的频域分析与校正</span></label></td><td>01:07:52</td></tr>
-      </tbody>
-      <tfoot>
-        <tr><th scope="row" colspan="2">合计</th><td class="total-duration">5:20:46</td><td></td></tr>
-      </tfoot>
-    </table>
+    <div class="course-grid" id="course-grid">
+      <section class="course power-course" aria-labelledby="power-heading">
+        <h2 id="power-heading">电力电子技术</h2>
+        <output class="course-summary caption">
+          <span>已选 <strong class="course-selected">4 小时 09min</strong></span>
+          <span>未选 <span class="course-remaining">0 小时 00min</span></span>
+        </output>
+        <table aria-labelledby="power-heading">
+          <thead>
+            <tr><th scope="col">序号</th><th scope="col">视频</th><th scope="col">时长</th><th scope="col" class="bar-column" aria-label="时长进度条"></th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td><label><input type="checkbox" checked> <span>电力电子器件（1）</span></label></td><td>20:27</td></tr>
+            <tr><td>2</td><td><label><input type="checkbox" checked> <span>电力电子器件（2）</span></label></td><td>13:52</td></tr>
+            <tr><td>3</td><td><label><input type="checkbox" checked> <span>电力电子器件（3）</span></label></td><td>11:02</td></tr>
+            <tr><td>4</td><td><label><input type="checkbox" checked> <span>整流电路（1）</span></label></td><td>19:27</td></tr>
+            <tr><td>5</td><td><label><input type="checkbox" checked> <span>整流电路（2）</span></label></td><td>15:54</td></tr>
+            <tr><td>6</td><td><label><input type="checkbox" checked> <span>整流电路（3）</span></label></td><td>05:06</td></tr>
+            <tr><td>7</td><td><label><input type="checkbox" checked> <span>整流电路（4）</span></label></td><td>14:09</td></tr>
+            <tr><td>8</td><td><label><input type="checkbox" checked> <span>逆变电路（1）</span></label></td><td>13:10</td></tr>
+            <tr><td>9</td><td><label><input type="checkbox" checked> <span>逆变电路（2）</span></label></td><td>04:40</td></tr>
+            <tr><td>10</td><td><label><input type="checkbox" checked> <span>直流斩波电路（1）</span></label></td><td>15:08</td></tr>
+            <tr><td>11</td><td><label><input type="checkbox" checked> <span>直流斩波电路（2）</span></label></td><td>13:17</td></tr>
+            <tr><td>12</td><td><label><input type="checkbox" checked> <span>直流斩波电路（3）</span></label></td><td>24:38</td></tr>
+            <tr><td>13</td><td><label><input type="checkbox" checked> <span>直流斩波电路（4）</span></label></td><td>04:27</td></tr>
+            <tr><td>14</td><td><label><input type="checkbox" checked> <span>交流电力控制电路（1）</span></label></td><td>13:02</td></tr>
+            <tr><td>15</td><td><label><input type="checkbox" checked> <span>交流电力控制电路（2）</span></label></td><td>13:00</td></tr>
+            <tr><td>16</td><td><label><input type="checkbox" checked> <span>脉冲调制技术（1）</span></label></td><td>09:42</td></tr>
+            <tr><td>17</td><td><label><input type="checkbox" checked> <span>脉冲调制技术（2）</span></label></td><td>09:58</td></tr>
+            <tr><td>18</td><td><label><input type="checkbox" checked> <span>脉冲调制技术（3）</span></label></td><td>13:32</td></tr>
+            <tr><td>19</td><td><label><input type="checkbox" checked> <span>电力电子器件应用中的问题</span></label></td><td>14:38</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><th scope="row" colspan="2">合计</th><td class="total-duration">4:09:09</td><td></td></tr>
+          </tfoot>
+        </table>
+      </section>
+      <section class="course control-course" aria-labelledby="control-heading">
+        <h2 id="control-heading">自动控制原理</h2>
+        <output class="course-summary caption">
+          <span>已选 <strong class="course-selected">5 小时 20min</strong></span>
+          <span>未选 <span class="course-remaining">0 小时 00min</span></span>
+        </output>
+        <table aria-labelledby="control-heading">
+          <thead>
+            <tr><th scope="col">序号</th><th scope="col">视频</th><th scope="col">时长</th><th scope="col" class="bar-column" aria-label="时长进度条"></th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td><label><input type="checkbox" checked> <span>自动控制的一般概念</span></label></td><td>01:05:10</td></tr>
+            <tr><td>2</td><td><label><input type="checkbox" checked> <span>控制系统的数学模型</span></label></td><td>01:02:16</td></tr>
+            <tr><td>3</td><td><label><input type="checkbox" checked> <span>线性系统的时域分析法</span></label></td><td>01:03:25</td></tr>
+            <tr><td>4</td><td><label><input type="checkbox" checked> <span>线性系统的根轨迹分析法</span></label></td><td>01:02:03</td></tr>
+            <tr><td>5</td><td><label><input type="checkbox" checked> <span>线性系统的频域分析与校正</span></label></td><td>01:07:52</td></tr>
+          </tbody>
+          <tfoot>
+            <tr><th scope="row" colspan="2">合计</th><td class="total-duration">5:20:46</td><td></td></tr>
+          </tfoot>
+        </table>
+      </section>
+    </div>
     <footer class="table-tools">
       <label class="gap-control caption">列间距 <input id="column-gap" type="number" value="50" min="0" max="200" step="25"> px</label>
       <div class="gap-buttons">
@@ -115,18 +168,26 @@
     </footer>
   </main>
   <script>
-    const table = document.getElementById('video-table');
-    const videos = Array.from(document.querySelectorAll('tbody tr'), (row) => {
-      const timeCell = row.cells[2];
-      const seconds = timeCell.textContent.split(':').reduce((total, part) => total * 60 + Number(part), 0);
-      return { row, checkbox: row.querySelector('input'), label: row.querySelector('label'), seconds };
+    const courseGrid = document.getElementById('course-grid');
+    const courses = Array.from(courseGrid.querySelectorAll('.course'), (section) => {
+      const videos = Array.from(section.querySelectorAll('tbody tr'), (row) => {
+        const seconds = row.cells[2].textContent.split(':').reduce((total, part) => total * 60 + Number(part), 0);
+        return { row, checkbox: row.querySelector('input'), label: row.querySelector('label'), seconds };
+      });
+      return {
+        videos,
+        total: videos.reduce((sum, video) => sum + video.seconds, 0),
+        selectedOutput: section.querySelector('.course-selected'),
+        remainingOutput: section.querySelector('.course-remaining')
+      };
     });
+    const videos = courses.flatMap((course) => course.videos);
     const count = document.getElementById('count');
     const duration = document.getElementById('duration');
     const remaining = document.getElementById('remaining');
     const rangeButton = document.getElementById('range-mode');
     const rangeHint = document.getElementById('range-hint');
-    const allSeconds = videos.reduce((sum, video) => sum + video.seconds, 0);
+    const allSeconds = courses.reduce((sum, course) => sum + course.total, 0);
     let selectionAnchor = null;
     let rangeMode = false;
     let rangeStart = null;
@@ -138,11 +199,19 @@
     }
 
     function updateSummary() {
-      const selected = videos.filter(({ checkbox }) => checkbox.checked);
-      const total = selected.reduce((sum, video) => sum + video.seconds, 0);
-      count.textContent = selected.length + ' / ' + videos.length;
-      duration.textContent = formatDuration(total);
-      remaining.textContent = formatDuration(allSeconds - total);
+      let selectedCount = 0;
+      let selectedSeconds = 0;
+      for (const course of courses) {
+        const selected = course.videos.filter(({ checkbox }) => checkbox.checked);
+        const total = selected.reduce((sum, video) => sum + video.seconds, 0);
+        course.selectedOutput.textContent = formatDuration(total);
+        course.remainingOutput.textContent = formatDuration(course.total - total);
+        selectedCount += selected.length;
+        selectedSeconds += total;
+      }
+      count.textContent = selectedCount + ' / ' + videos.length;
+      duration.textContent = formatDuration(selectedSeconds);
+      remaining.textContent = formatDuration(allSeconds - selectedSeconds);
     }
 
     function setAll(checked) {
@@ -220,14 +289,14 @@
     const gapInput = document.getElementById('column-gap');
     function updateColumnGap() {
       if (gapInput.value !== '' && gapInput.validity.valid) {
-        table.style.setProperty('--column-gap', gapInput.valueAsNumber + 'px');
+        courseGrid.style.setProperty('--column-gap', gapInput.valueAsNumber + 'px');
       }
     }
 
     gapInput.addEventListener('input', updateColumnGap);
     gapInput.addEventListener('change', () => {
       if (gapInput.value === '' || !gapInput.validity.valid) {
-        gapInput.value = parseFloat(table.style.getPropertyValue('--column-gap') || gapInput.defaultValue);
+        gapInput.value = parseFloat(courseGrid.style.getPropertyValue('--column-gap') || gapInput.defaultValue);
       }
     });
     document.getElementById('decrease-gap').addEventListener('click', () => {
@@ -241,7 +310,7 @@
 
     const toggleBars = document.getElementById('toggle-bars');
     toggleBars.addEventListener('click', () => {
-      const shown = table.classList.toggle('show-bars');
+      const shown = courseGrid.classList.toggle('show-bars');
       toggleBars.setAttribute('aria-pressed', String(shown));
     });
 
