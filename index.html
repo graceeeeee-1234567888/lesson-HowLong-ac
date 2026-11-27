@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>网课时长 · 自动控制原理</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      color: #172b47;
+      background: #fff;
+      font-family: system-ui, "Microsoft YaHei", sans-serif;
+      accent-color: #225ab6;
+    }
+    body { margin: 0; padding: 0 20px 36px; }
+    main { max-width: 640px; margin: 0 auto; }
+    header {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      border-bottom: 1px solid #dce7f4;
+      padding: 24px 0 14px;
+    }
+    h1 { margin: 0 0 14px; font-size: clamp(1.4rem, 5vw, 2rem); }
+    .summary { display: flex; gap: 12px 24px; flex-wrap: wrap; align-items: end; justify-content: space-between; }
+    output { display: grid; gap: 4px; }
+    .caption, th, td:first-child { color: #475e79; font-size: .875rem; }
+    #duration { font-size: 1.45rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .actions { display: flex; gap: 8px; }
+    button {
+      border: 1px solid #b8cbe3;
+      border-radius: 6px;
+      padding: 8px 12px;
+      background: #fff;
+      color: inherit;
+      font: inherit;
+      font-size: .875rem;
+      cursor: pointer;
+    }
+    button:hover, tr:hover td { background: #f1f6fe; }
+    button[aria-pressed="true"] { background: #e3edfb; border-color: #3e76c8; }
+    :focus-visible { outline: 2px solid #225ab6; outline-offset: 3px; }
+    .range-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; }
+    tbody tr.range-start td { background: #e3edfb; }
+    .table-tools { display: flex; align-items: center; gap: 6px; margin-top: 12px; }
+    .gap-control { display: flex; align-items: center; gap: 6px; color: #4b607c; }
+    #column-gap { width: 3.25rem; padding: 4px; border: 1px solid #b8cbe3; border-radius: 4px; color: inherit; font: inherit; }
+    .gap-buttons { display: flex; gap: 4px; }
+    .gap-buttons button { width: 1.75rem; height: 1.75rem; padding: 0; color: #4b607c; font-size: 1rem; line-height: 1; }
+    table { --column-gap: 50px; max-width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { border-bottom: 1px solid #e3edfb; padding: 10px 0; }
+    thead th:first-child, tbody td:first-child { padding-right: 10px; white-space: nowrap; }
+    thead th:nth-child(3), tbody td:nth-child(3), .total-duration { padding-left: var(--column-gap); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    tbody td:nth-child(2) { padding: 0; }
+    tbody label { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 0; cursor: pointer; user-select: none; }
+    input[type="checkbox"] { flex: none; width: 1rem; height: 1rem; margin: 0; cursor: pointer; }
+    .bar-column { padding-left: 8px; text-align: left; }
+    .bar-column button { padding: 4px 6px; white-space: nowrap; }
+    .duration-bar { display: block; height: 6px; border-radius: 4px; background: #e3edfb; }
+    table:not(.show-bars) .duration-bar { display: none; }
+    .duration-bar > span { display: block; height: 100%; border-radius: inherit; background: #3e76c8; }
+    tfoot { font-weight: 600; }
+    @media (max-width: 540px) {
+      thead th:nth-child(3), tbody td:nth-child(3), .total-duration { padding-left: min(var(--column-gap), 18vw); }
+    }
+    @media (max-width: 420px) { body { padding-inline: 12px; } header { padding-top: 14px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>网课时长</h1>
+      <div class="summary">
+        <output>
+          <span class="caption">已选 <span id="count">5 / 5</span> 项</span>
+          <span id="duration">5 小时 20min</span>
+          <span class="caption">未选 <span id="remaining">0 小时 00min</span></span>
+        </output>
+        <div class="actions">
+          <button type="button" id="select-all">全选</button>
+          <button type="button" id="clear-all">清空</button>
+        </div>
+      </div>
+    </header>
+    <div class="range-controls">
+      <button type="button" id="range-mode" aria-pressed="false">连选</button>
+      <span class="caption" id="range-hint" aria-live="polite">按住 Shift 连选</span>
+    </div>
+    <table aria-label="视频时长表" id="video-table">
+      <thead>
+        <tr>
+          <th scope="col">序号</th>
+          <th scope="col">视频</th>
+          <th scope="col">时长</th>
+          <th scope="col" class="bar-column"><button type="button" id="toggle-bars" aria-pressed="false">进度条</button></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><label><input type="checkbox" checked> <span>自动控制的一般概念</span></label></td><td>01:05:10</td></tr>
+        <tr><td>2</td><td><label><input type="checkbox" checked> <span>控制系统的数学模型</span></label></td><td>01:02:16</td></tr>
+        <tr><td>3</td><td><label><input type="checkbox" checked> <span>线性系统的时域分析法</span></label></td><td>01:03:25</td></tr>
+        <tr><td>4</td><td><label><input type="checkbox" checked> <span>线性系统的根轨迹分析法</span></label></td><td>01:02:03</td></tr>
+        <tr><td>5</td><td><label><input type="checkbox" checked> <span>线性系统的频域分析与校正</span></label></td><td>01:07:52</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><th scope="row" colspan="2">合计</th><td class="total-duration">5:20:46</td><td></td></tr>
+      </tfoot>
+    </table>
+    <footer class="table-tools">
+      <label class="gap-control caption">列间距 <input id="column-gap" type="number" value="50" min="0" max="200" step="25"> px</label>
+      <div class="gap-buttons">
+        <button type="button" id="decrease-gap" aria-label="减小列间距">−</button>
+        <button type="button" id="increase-gap" aria-label="增大列间距">+</button>
+      </div>
+    </footer>
+  </main>
+  <script>
+    const table = document.getElementById('video-table');
+    const videos = Array.from(document.querySelectorAll('tbody tr'), (row) => {
+      const timeCell = row.cells[2];
+      const seconds = timeCell.textContent.split(':').reduce((total, part) => total * 60 + Number(part), 0);
+      return { row, checkbox: row.querySelector('input'), label: row.querySelector('label'), seconds };
+    });
+    const count = document.getElementById('count');
+    const duration = document.getElementById('duration');
+    const remaining = document.getElementById('remaining');
+    const rangeButton = document.getElementById('range-mode');
+    const rangeHint = document.getElementById('range-hint');
+    const allSeconds = videos.reduce((sum, video) => sum + video.seconds, 0);
+    let selectionAnchor = null;
+    let rangeMode = false;
+    let rangeStart = null;
+
+    function formatDuration(total) {
+      const hours = Math.floor(total / 3600);
+      const minutes = String(Math.floor(total / 60) % 60).padStart(2, '0');
+      return hours + ' 小时 ' + minutes + 'min';
+    }
+
+    function updateSummary() {
+      const selected = videos.filter(({ checkbox }) => checkbox.checked);
+      const total = selected.reduce((sum, video) => sum + video.seconds, 0);
+      count.textContent = selected.length + ' / ' + videos.length;
+      duration.textContent = formatDuration(total);
+      remaining.textContent = formatDuration(allSeconds - total);
+    }
+
+    function setAll(checked) {
+      for (const { checkbox } of videos) {
+        checkbox.checked = checked;
+      }
+      selectionAnchor = null;
+      setRangeMode(false);
+      updateSummary();
+    }
+
+    function setRange(start, end, checked) {
+      const first = Math.min(start, end);
+      const last = Math.max(start, end);
+      for (const { checkbox } of videos.slice(first, last + 1)) {
+        checkbox.checked = checked;
+      }
+      updateSummary();
+    }
+
+    function setRangeMode(active) {
+      if (rangeStart) {
+        videos[rangeStart.index].row.classList.remove('range-start');
+      }
+      rangeStart = null;
+      rangeMode = active;
+      rangeButton.setAttribute('aria-pressed', String(active));
+      rangeHint.textContent = active ? '选择范围的第一节课' : '按住 Shift 连选';
+    }
+
+    rangeButton.addEventListener('click', () => setRangeMode(!rangeMode));
+
+    const longest = Math.max(...videos.map(({ seconds }) => seconds));
+    videos.forEach(({ row, label, checkbox, seconds }, index) => {
+      checkbox.addEventListener('click', (event) => {
+        if (rangeMode) {
+          if (rangeStart === null) {
+            event.preventDefault();
+            rangeStart = { index, checked: checkbox.checked };
+            row.classList.add('range-start');
+            rangeHint.textContent = rangeStart.checked ? '点选另一端，勾选整段' : '点选另一端，取消勾选整段';
+          } else {
+            setRange(rangeStart.index, index, rangeStart.checked);
+            selectionAnchor = index;
+            setRangeMode(false);
+          }
+          return;
+        }
+
+        if (event.shiftKey && selectionAnchor !== null) {
+          setRange(selectionAnchor, index, checkbox.checked);
+        } else {
+          selectionAnchor = index;
+          updateSummary();
+        }
+      });
+      label.addEventListener('click', (event) => {
+        if (!rangeMode && event.target !== checkbox && event.shiftKey && selectionAnchor !== null) {
+          event.preventDefault();
+          setRange(selectionAnchor, index, !checkbox.checked);
+        }
+      });
+
+      const fill = document.createElement('span');
+      fill.style.width = (seconds / longest * 100) + '%';
+      const bar = document.createElement('span');
+      bar.className = 'duration-bar';
+      bar.setAttribute('aria-hidden', 'true');
+      bar.append(fill);
+      const barCell = row.insertCell();
+      barCell.className = 'bar-column';
+      barCell.append(bar);
+    });
+
+    const gapInput = document.getElementById('column-gap');
+    function updateColumnGap() {
+      if (gapInput.value !== '' && gapInput.validity.valid) {
+        table.style.setProperty('--column-gap', gapInput.valueAsNumber + 'px');
+      }
+    }
+
+    gapInput.addEventListener('input', updateColumnGap);
+    gapInput.addEventListener('change', () => {
+      if (gapInput.value === '' || !gapInput.validity.valid) {
+        gapInput.value = parseFloat(table.style.getPropertyValue('--column-gap') || gapInput.defaultValue);
+      }
+    });
+    document.getElementById('decrease-gap').addEventListener('click', () => {
+      gapInput.stepDown();
+      updateColumnGap();
+    });
+    document.getElementById('increase-gap').addEventListener('click', () => {
+      gapInput.stepUp();
+      updateColumnGap();
+    });
+
+    const toggleBars = document.getElementById('toggle-bars');
+    toggleBars.addEventListener('click', () => {
+      const shown = table.classList.toggle('show-bars');
+      toggleBars.setAttribute('aria-pressed', String(shown));
+    });
+
+    document.getElementById('select-all').addEventListener('click', () => setAll(true));
+    document.getElementById('clear-all').addEventListener('click', () => setAll(false));
+    updateSummary();
+  </script>
+</body>
+</html>
